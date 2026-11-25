@@ -1,7 +1,5 @@
 <?php
 
-test('returns a successful response', function () {
-    $response = $this->get(route('home'));
-
-    $response->assertOk();
+test('la raíz lleva al panel de clientes', function () {
+    $this->get('/')->assertRedirect('/dashboard');
 });

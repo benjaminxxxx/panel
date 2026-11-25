@@ -161,7 +161,7 @@ return [
     */
 
     'features' => [
-        Features::registration(),
+        // Features::registration(), // panel privado: las cuentas las crea el administrador
         Features::resetPasswords(),
         Features::emailVerification(),
         Features::twoFactorAuthentication([
