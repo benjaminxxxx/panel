@@ -11,11 +11,8 @@ class DatabaseSeeder extends Seeder
 {
     /**
      * Datos iniciales para desarrollo. Idempotente: se puede ejecutar varias veces.
-     * La clave del cliente demo coincide con la que compilar.ps1 pone en el instalador
-     * de prueba; en producción cada cliente recibe una clave aleatoria desde el panel.
+     * El local se activa con un código de un solo uso (ficha del cliente → Generar código).
      */
-    public const CLAVE_DEMO = 'rst_demo_local_2026';
-
     public function run(): void
     {
         User::updateOrCreate(['email' => 'benjamin_unitek@hotmail.com'], [
@@ -31,9 +28,9 @@ class DatabaseSeeder extends Seeder
                 'contacto' => 'Local de prueba',
                 'vence_el' => now()->addMonth()->toDateString(),
             ]);
-            $cliente->nuevaClave(self::CLAVE_DEMO);
+            $cliente->nuevaClave(); // se reemplaza al activar el local
             $cliente->save();
         }
-        $this->command?->info('Cliente demo: "'.$cliente->nombre.'" · clave '.self::CLAVE_DEMO);
+        $this->command?->info('Cliente demo: "'.$cliente->nombre.'". Actívalo desde su ficha con "Generar código de activación".');
     }
 }
