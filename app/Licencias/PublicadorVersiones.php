@@ -13,7 +13,7 @@ final class PublicadorVersiones
     public function publicar(string $version, string $rutaArchivo, ?string $notas, bool $publicada): Version
     {
         $sha256 = hash_file('sha256', $rutaArchivo);
-        $destino = "versiones/restaurante-{$version}.exe";
+        $destino = "versiones/Restaurante-Setup-{$version}.exe";
         $origen = fopen($rutaArchivo, 'rb');
         Storage::disk('local')->put($destino, $origen);
         if (is_resource($origen)) {

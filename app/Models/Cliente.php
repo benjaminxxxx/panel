@@ -25,11 +25,16 @@ use Illuminate\Support\Str;
  * @property string|null $ip_reportada
  */
 #[Fillable(['nombre', 'codigo', 'contacto', 'estado', 'motivo_bloqueo', 'bloqueo_automatico', 'vence_el'])]
-#[Hidden(['clave_hash'])]
+#[Hidden(['clave_hash', 'activacion_hash'])]
 class Cliente extends Model
 {
     /** Mismos valores por defecto que la tabla, para que un cliente nuevo los tenga en memoria. */
     protected $attributes = ['estado' => 'activo', 'bloqueo_automatico' => true];
+
+    /** Letras y números sin los que se confunden (0/O, 1/I/L). */
+    private const ALFABETO_ACTIVACION = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+
+    public const MINUTOS_ACTIVACION = 120;
 
     protected function casts(): array
     {
@@ -37,7 +42,33 @@ class Cliente extends Model
             'bloqueo_automatico' => 'boolean',
             'vence_el' => 'date',
             'ultimo_contacto_at' => 'datetime',
+            'activacion_expira_at' => 'datetime',
         ];
+    }
+
+    /** Genera un código de activación de un solo uso (ej. K7PM-2XQA) válido por 2 horas. */
+    public function nuevoCodigoActivacion(): string
+    {
+        $codigo = '';
+        for ($i = 0; $i < 8; $i++) {
+            $codigo .= self::ALFABETO_ACTIVACION[random_int(0, strlen(self::ALFABETO_ACTIVACION) - 1)];
+        }
+        $this->forceFill([
+            'activacion_hash' => hash('sha256', $codigo),
+            'activacion_expira_at' => now()->addMinutes(self::MINUTOS_ACTIVACION),
+        ])->save();
+
+        return substr($codigo, 0, 4).'-'.substr($codigo, 4);
+    }
+
+    /** Busca el cliente de un código vigente. Acepta minúsculas y con o sin guion. */
+    public static function porCodigoActivacion(string $codigo): ?self
+    {
+        $normal = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $codigo));
+
+        return static::where('activacion_hash', hash('sha256', $normal))
+            ->where('activacion_expira_at', '>', now())
+            ->first();
     }
 
     public function pagos(): HasMany

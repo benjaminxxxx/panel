@@ -36,6 +36,16 @@ class GenerarLlaves extends Command
         }
         $this->line(base64_encode(sodium_crypto_sign_publickey_from_secretkey($privada)));
 
+        // Token para publicar desde GitHub Actions (se guarda como secreto PANEL_TOKEN en el repo).
+        $token = config('licencias.token_publicacion');
+        if (! $token) {
+            $token = bin2hex(random_bytes(24));
+            file_put_contents($env, rtrim((string) file_get_contents($env))."\nLICENCIA_TOKEN_PUBLICACION={$token}\n");
+        }
+        $this->newLine();
+        $this->info('Token de publicación (secreto PANEL_TOKEN en GitHub):');
+        $this->line($token);
+
         return self::SUCCESS;
     }
 }

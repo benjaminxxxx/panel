@@ -87,6 +87,11 @@ class ClienteController extends Controller
         return back()->with('clave', $clave);
     }
 
+    public function activacion(Cliente $cliente): RedirectResponse
+    {
+        return back()->with('activacion', $cliente->nuevoCodigoActivacion());
+    }
+
     private function codigoUnico(string $nombre): string
     {
         $base = Str::slug($nombre) ?: 'cliente';

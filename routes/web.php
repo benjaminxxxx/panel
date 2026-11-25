@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ClienteController;
+use App\Http\Controllers\DescargaController;
 use App\Http\Controllers\PagoController;
 use App\Http\Controllers\VersionController;
 use Illuminate\Support\Facades\Route;
@@ -17,7 +18,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('clientes/{cliente}/bloquear', [ClienteController::class, 'bloquear'])->name('clientes.bloquear');
     Route::post('clientes/{cliente}/habilitar', [ClienteController::class, 'habilitar'])->name('clientes.habilitar');
     Route::post('clientes/{cliente}/clave', [ClienteController::class, 'regenerarClave'])->name('clientes.clave');
+    Route::post('clientes/{cliente}/activacion', [ClienteController::class, 'activacion'])->name('clientes.activacion');
     Route::post('clientes/{cliente}/pagos', [PagoController::class, 'store'])->name('clientes.pagos.store');
+
+    Route::get('descargas', [DescargaController::class, 'index'])->name('descargas');
+    Route::get('descargas/windows', [DescargaController::class, 'windows'])->name('descargas.windows');
 
     Route::get('versiones', [VersionController::class, 'index'])->name('versiones.index');
     Route::post('versiones', [VersionController::class, 'store'])->name('versiones.store');

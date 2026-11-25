@@ -14,5 +14,8 @@ return [
     // Cuántos días puede funcionar el local sin conectarse al panel.
     'dias_sin_conexion' => (int) env('LICENCIA_DIAS_SIN_CONEXION', 7),
 
+    // Token con el que GitHub Actions publica versiones (POST /api/v1/versiones). Solo sube; no firma.
+    'token_publicacion' => env('LICENCIA_TOKEN_PUBLICACION'),
+
     'motivo_por_defecto' => 'Servicio suspendido por falta de pago. Comunícate con tu proveedor para reactivarlo.',
 ];

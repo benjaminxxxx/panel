@@ -15,6 +15,9 @@
                     <flux:sidebar.item icon="building-storefront" :href="route('dashboard')" :current="request()->routeIs('dashboard', 'clientes.*')" wire:navigate>
                         Clientes
                     </flux:sidebar.item>
+                    <flux:sidebar.item icon="computer-desktop" :href="route('descargas')" :current="request()->routeIs('descargas*')" wire:navigate>
+                        Instalar
+                    </flux:sidebar.item>
                     <flux:sidebar.item icon="arrow-down-tray" :href="route('versiones.index')" :current="request()->routeIs('versiones.*')" wire:navigate>
                         Versiones
                     </flux:sidebar.item>

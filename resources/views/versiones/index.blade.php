@@ -19,7 +19,7 @@
                 <flux:heading size="lg">Subir versión</flux:heading>
                 <flux:input name="version" label="Versión" placeholder="1.0.1" :value="old('version')" required class="max-w-40" />
                 <flux:textarea name="notas" label="Novedades (las ve la dueña antes de instalar)" rows="3">{{ old('notas') }}</flux:textarea>
-                <flux:input name="archivo" type="file" label="Ejecutable (restaurante-app-X.Y.Z.exe)" accept=".exe" required />
+                <flux:input name="archivo" type="file" label="Instalador (Restaurante-Setup-X.Y.Z.exe)" accept=".exe" required />
                 <flux:checkbox name="publicar" value="1" checked label="Publicar ya" />
                 <div><flux:button type="submit" variant="primary" icon="arrow-up-tray">Subir y firmar</flux:button></div>
             </form>

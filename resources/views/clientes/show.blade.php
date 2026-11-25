@@ -25,6 +25,22 @@
             <flux:callout variant="danger" icon="x-circle" :heading="$errors->first()" />
         @endif
 
+        <flux:card class="flex flex-col gap-3">
+            <flux:heading size="lg">Instalar en el local</flux:heading>
+            @if (session('activacion'))
+                <flux:text>Código de activación (vale {{ \App\Models\Cliente::MINUTOS_ACTIVACION / 60 }} horas, una sola vez):</flux:text>
+                <div class="select-all font-mono text-4xl font-bold tracking-widest">{{ session('activacion') }}</div>
+                <flux:text>Escríbelo en la pantalla "Activar este local" que aparece al terminar la instalación.</flux:text>
+            @else
+                <flux:text>1) Descarga el instalador en <a class="underline" href="{{ route('descargas') }}">Instalar</a>.
+                    2) Al terminar, el sistema pide un código: genéralo aquí. Activar de nuevo reemplaza la instalación anterior.</flux:text>
+            @endif
+            <form method="POST" action="{{ route('clientes.activacion', $c) }}">
+                @csrf
+                <flux:button type="submit" icon="key">Generar código de activación</flux:button>
+            </form>
+        </flux:card>
+
         <flux:card class="flex flex-col gap-4">
             <flux:heading size="lg">Acceso</flux:heading>
             @if ($estado['estado'] === 'bloqueado')
