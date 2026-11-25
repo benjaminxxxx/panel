@@ -17,9 +17,13 @@
             <form method="POST" action="{{ route('versiones.store') }}" enctype="multipart/form-data" class="flex flex-col gap-4">
                 @csrf
                 <flux:heading size="lg">Subir versión</flux:heading>
+                <flux:select name="plataforma" label="Para" class="max-w-80">
+                    <flux:select.option value="windows">Windows: instalador del local (Restaurante-Setup-X.Y.Z.exe)</flux:select.option>
+                    <flux:select.option value="android">Android: app de tablets y celulares (Restaurante-X.Y.Z.apk)</flux:select.option>
+                </flux:select>
                 <flux:input name="version" label="Versión" placeholder="1.0.1" :value="old('version')" required class="max-w-40" />
                 <flux:textarea name="notas" label="Novedades (las ve la dueña antes de instalar)" rows="3">{{ old('notas') }}</flux:textarea>
-                <flux:input name="archivo" type="file" label="Instalador (Restaurante-Setup-X.Y.Z.exe)" accept=".exe" required />
+                <flux:input name="archivo" type="file" label="Archivo (.exe o .apk)" accept=".exe,.apk" required />
                 <flux:checkbox name="publicar" value="1" checked label="Publicar ya" />
                 <div><flux:button type="submit" variant="primary" icon="arrow-up-tray">Subir y firmar</flux:button></div>
             </form>
@@ -33,7 +37,7 @@
                 <tbody class="divide-y divide-zinc-200 dark:divide-zinc-700">
                     @forelse ($versiones as $v)
                         <tr>
-                            <td class="px-4 py-3 font-medium">{{ $v->version }}
+                            <td class="px-4 py-3 font-medium">{{ $v->plataforma === 'android' ? 'Android' : 'Windows' }} {{ $v->version }}
                                 @if ($v->publicada) <flux:badge color="green" size="sm">Publicada</flux:badge> @else <flux:badge size="sm">Borrador</flux:badge> @endif
                             </td>
                             <td class="px-4 py-3">{{ $v->notas }}</td>

@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\ActivacionController;
 use App\Http\Controllers\Api\ActualizacionController;
 use App\Http\Controllers\Api\LicenciaController;
 use App\Http\Controllers\Api\PublicacionController;
+use App\Http\Controllers\AppController;
 use App\Http\Middleware\AutenticarCliente;
 use Illuminate\Support\Facades\Route;
 
@@ -11,6 +12,7 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('v1')->group(function () {
     Route::post('activar', [ActivacionController::class, 'activar'])->middleware('throttle:10,1');
     Route::post('versiones', [PublicacionController::class, 'store']); // GitHub Actions, con token
+    Route::get('android', [AppController::class, 'ultima']); // la app Android pregunta si hay versión nueva
 
     Route::middleware(AutenticarCliente::class)->group(function () {
         Route::get('licencia', [LicenciaController::class, 'mostrar']);

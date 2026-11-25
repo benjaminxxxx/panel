@@ -31,7 +31,7 @@ class ActualizacionController extends Controller
 
     public function descargar(string $version): StreamedResponse
     {
-        $v = Version::where('version', $version)->where('publicada', true)->firstOrFail();
+        $v = Version::where('plataforma', 'windows')->where('version', $version)->where('publicada', true)->firstOrFail();
 
         return Storage::disk('local')->download($v->archivo, "restaurante-{$v->version}.exe");
     }

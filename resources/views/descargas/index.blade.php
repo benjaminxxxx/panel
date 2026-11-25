@@ -32,13 +32,20 @@
                 <flux:icon name="device-phone-mobile" class="size-8" />
                 <flux:heading size="lg">Tablets y celulares (Android o iPhone)</flux:heading>
             </div>
-            <flux:text>No se instala nada desde aquí: se usan con la computadora del local, por el WiFi del restaurante.</flux:text>
+            <flux:text>Se usan con la computadora del local, por el WiFi del restaurante.</flux:text>
             <ol class="list-decimal space-y-1 ps-5 text-sm">
                 <li>Conecta la tablet al mismo WiFi que la computadora del local.</li>
-                <li>En la computadora, abre el sistema → <strong>Panel → Instalar en celulares</strong>: muestra la dirección (ej. http://192.168.1.20:8080).</li>
-                <li>En la tablet, abre esa dirección en Chrome (Android) o Safari (iPhone).</li>
-                <li>Android: menú ⋮ → <strong>Agregar a la pantalla principal</strong>. iPhone: Compartir → <strong>Agregar a inicio</strong>.</li>
+                <li>En la computadora, abre el sistema → <strong>Panel → Celulares</strong> y escanea el QR con la cámara de la tablet.</li>
+                <li><strong>Android</strong>: si la app ya está instalada se abre conectada al local; si no, descarga la app y ábrela.
+                    Después se actualiza sola.</li>
+                <li><strong>iPhone</strong>: abre el sistema en Safari → Compartir → <strong>Agregar a inicio</strong>.</li>
             </ol>
+            @php($apk = \App\Models\Version::ultimaPublicada('android'))
+            @if ($apk)
+                <div>
+                    <flux:button icon="arrow-down-tray" :href="route('app.android')">Descargar app Android · versión {{ $apk->version }}</flux:button>
+                </div>
+            @endif
         </flux:card>
     </div>
 </x-layouts::app>

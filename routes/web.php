@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AppController;
 use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\DescargaController;
 use App\Http\Controllers\PagoController;
@@ -7,6 +8,10 @@ use App\Http\Controllers\VersionController;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/dashboard')->name('home');
+
+// Públicas: lo que abre el QR del local en el celular (abrir la app o instalarla).
+Route::get('app', [AppController::class, 'abrir'])->name('app');
+Route::get('app/android/descargar', [AppController::class, 'descargar'])->name('app.android');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [ClienteController::class, 'index'])->name('dashboard');
