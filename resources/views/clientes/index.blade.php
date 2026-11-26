@@ -3,7 +3,7 @@
         <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
                 <flux:heading size="xl">Clientes</flux:heading>
-                <flux:text>Restaurantes que alquilan el sistema. El estado se envía firmado a cada local.</flux:text>
+                <flux:text>Restaurantes y panaderías que alquilan el sistema. El estado se envía firmado a cada local.</flux:text>
             </div>
             <flux:button variant="primary" icon="plus" :href="route('clientes.create')" wire:navigate>Nuevo cliente</flux:button>
         </div>
@@ -44,6 +44,7 @@
                         <tr>
                             <td class="px-4 py-3">
                                 <a class="font-medium underline-offset-4 hover:underline" href="{{ route('clientes.show', $c) }}" wire:navigate>{{ $c->nombre }}</a>
+                                <flux:badge size="sm" :color="$c->aplicacion === 'panaderia' ? 'pink' : 'zinc'">{{ config("licencias.aplicaciones.{$c->aplicacion}") }}</flux:badge>
                                 <div class="text-zinc-500">{{ $c->contacto }}</div>
                             </td>
                             <td class="px-4 py-3">

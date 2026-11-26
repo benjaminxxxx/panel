@@ -161,7 +161,7 @@ return [
     */
 
     'features' => [
-        // Features::registration(), // panel privado: las cuentas las crea el administrador
+        Features::registration(), // los dueños de empresas se registran para facturar
         Features::resetPasswords(),
         Features::emailVerification(),
         Features::twoFactorAuthentication([

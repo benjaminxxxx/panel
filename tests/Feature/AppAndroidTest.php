@@ -9,7 +9,7 @@ beforeEach(function () {
     $par = sodium_crypto_sign_keypair();
     config(['licencias.llave_privada' => base64_encode(sodium_crypto_sign_secretkey($par))]);
     Storage::fake('local');
-    $this->admin = User::factory()->create();
+    $this->admin = User::factory()->admin()->create();
 });
 
 function subir($test, string $version, string $plataforma, string $contenido): void

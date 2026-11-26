@@ -11,6 +11,7 @@ use Illuminate\Support\Str;
 
 /**
  * @property int $id
+ * @property string $aplicacion restaurante | panaderia (config licencias.aplicaciones)
  * @property string $nombre
  * @property string $codigo
  * @property string|null $contacto
@@ -24,12 +25,12 @@ use Illuminate\Support\Str;
  * @property string|null $version_reportada
  * @property string|null $ip_reportada
  */
-#[Fillable(['nombre', 'codigo', 'contacto', 'estado', 'motivo_bloqueo', 'bloqueo_automatico', 'vence_el'])]
+#[Fillable(['aplicacion', 'nombre', 'codigo', 'contacto', 'estado', 'motivo_bloqueo', 'bloqueo_automatico', 'vence_el'])]
 #[Hidden(['clave_hash', 'activacion_hash'])]
 class Cliente extends Model
 {
     /** Mismos valores por defecto que la tabla, para que un cliente nuevo los tenga en memoria. */
-    protected $attributes = ['estado' => 'activo', 'bloqueo_automatico' => true];
+    protected $attributes = ['aplicacion' => 'restaurante', 'estado' => 'activo', 'bloqueo_automatico' => true];
 
     /** Letras y números sin los que se confunden (0/O, 1/I/L). */
     private const ALFABETO_ACTIVACION = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';

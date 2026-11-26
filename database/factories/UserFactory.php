@@ -36,6 +36,12 @@ class UserFactory extends Factory
         ];
     }
 
+    /** El proveedor: administra locales, versiones y catálogo. */
+    public function admin(): static
+    {
+        return $this->state(fn (array $attributes) => ['es_admin' => true]);
+    }
+
     /**
      * Indicate that the model's email address should be unverified.
      */

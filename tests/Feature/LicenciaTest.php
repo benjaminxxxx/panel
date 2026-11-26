@@ -11,7 +11,7 @@ beforeEach(function () {
     $par = sodium_crypto_sign_keypair();
     $this->publica = sodium_crypto_sign_publickey($par);
     config(['licencias.llave_privada' => base64_encode(sodium_crypto_sign_secretkey($par))]);
-    Carbon::setTestNow('2026-11-24 12:00:00');
+    Carbon::setTestNow(Carbon::parse('2026-11-24 12:00:00', 'UTC'));
 
     $this->cliente = new Cliente(['nombre' => 'Restaurante demo', 'codigo' => 'demo', 'vence_el' => '2026-12-24']);
     $this->clave = $this->cliente->nuevaClave('clave-de-prueba');
@@ -68,7 +68,7 @@ test('aviso cuando el pago está por vencer', function () {
 
 test('actualización: ofrece la versión publicada más nueva, firmada, y permite descargarla', function () {
     Storage::fake('local');
-    $admin = User::factory()->create();
+    $admin = User::factory()->admin()->create();
     foreach (['1.0.9' => true, '1.0.10' => true, '1.1.0' => false] as $v => $publicar) {
         $this->actingAs($admin)->post(route('versiones.store'), [
             'version' => $v, 'notas' => "Cambios de $v", 'publicar' => $publicar ? '1' : null,
@@ -90,7 +90,7 @@ test('actualización: ofrece la versión publicada más nueva, firmada, y permit
 });
 
 test('panel: bloquear, habilitar y registrar un pago', function () {
-    $admin = User::factory()->create();
+    $admin = User::factory()->admin()->create();
     $c = $this->cliente;
 
     $this->actingAs($admin)->post(route('clientes.bloquear', $c), ['motivo' => 'Debe noviembre'])->assertRedirect();

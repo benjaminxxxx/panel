@@ -18,7 +18,13 @@ class LicenciaController extends Controller
             'ultimo_contacto_at' => now(),
             'version_reportada' => substr((string) $request->header('X-Version'), 0, 40) ?: $cliente->version_reportada,
             'ip_reportada' => $request->ip(),
-        ])->save();
+        ]);
+        // El local avisa que ya usó el permiso de "empezar de cero": se consume.
+        $usado = (string) $request->header('X-Reinicio-Usado');
+        if ($usado !== '' && $cliente->reinicio_permiso !== null && hash_equals($cliente->reinicio_permiso, $usado)) {
+            $cliente->reinicio_permiso = null;
+        }
+        $cliente->save();
 
         return response()->json($firmador->licencia($cliente));
     }

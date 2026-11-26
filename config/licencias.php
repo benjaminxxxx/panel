@@ -17,5 +17,12 @@ return [
     // Token con el que GitHub Actions publica versiones (POST /api/v1/versiones). Solo sube; no firma.
     'token_publicacion' => env('LICENCIA_TOKEN_PUBLICACION'),
 
+    // Sistemas que se alquilan desde este panel (clave => nombre). La clave viaja en la licencia
+    // y en la firma de cada versión: un instalador de un sistema no sirve para otro.
+    'aplicaciones' => [
+        'restaurante' => 'Restaurante',
+        'panaderia' => 'Panadería',
+    ],
+
     'motivo_por_defecto' => 'Servicio suspendido por falta de pago. Comunícate con tu proveedor para reactivarlo.',
 ];

@@ -1,0 +1,7 @@
+﻿{
+    "version":  "1.0.0",
+    "plataforma":  "windows",
+    "archivo":  "Panaderia-Setup-1.0.0.exe",
+    "sha256":  "607e727455dc0cbc5a6400794ea29dd2af4252c17e3b36e5f0c026350c36ea05",
+    "notas":  "Primera versión: caja táctil, código de barras, facturación electrónica, promociones de pan, búsqueda de RUC/DNI."
+}

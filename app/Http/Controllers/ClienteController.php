@@ -7,6 +7,7 @@ use App\Models\Cliente;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class ClienteController extends Controller
@@ -33,6 +34,7 @@ class ClienteController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $datos = $request->validate([
+            'aplicacion' => ['required', Rule::in(array_keys(config('licencias.aplicaciones')))],
             'nombre' => ['required', 'string', 'max:120'],
             'contacto' => ['nullable', 'string', 'max:120'],
             'vence_el' => ['nullable', 'date'],
@@ -90,6 +92,14 @@ class ClienteController extends Controller
     public function activacion(Cliente $cliente): RedirectResponse
     {
         return back()->with('activacion', $cliente->nuevoCodigoActivacion());
+    }
+
+    /** Permiso de un solo uso para "Empezar de cero" en el local (viaja en la licencia firmada). */
+    public function permitirReinicio(Cliente $cliente): RedirectResponse
+    {
+        $cliente->forceFill(['reinicio_permiso' => Str::random(16)])->save();
+
+        return back()->with('ok', "{$cliente->nombre} puede empezar de cero una vez más (lo verá en ≈1 minuto).");
     }
 
     private function codigoUnico(string $nombre): string

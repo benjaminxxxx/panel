@@ -16,7 +16,7 @@ beforeEach(function () {
     $this->cliente = new Cliente(['nombre' => 'Pollería Ana', 'codigo' => 'polleria-ana']);
     $this->cliente->nuevaClave('clave-vieja');
     $this->cliente->save();
-    $this->admin = User::factory()->create();
+    $this->admin = User::factory()->admin()->create();
 });
 
 test('el código de activación entrega una clave nueva una sola vez', function () {

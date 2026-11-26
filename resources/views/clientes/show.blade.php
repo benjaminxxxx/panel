@@ -2,7 +2,7 @@
     <div class="flex w-full max-w-4xl flex-col gap-6">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
-                <flux:heading size="xl">{{ $c->nombre }}</flux:heading>
+                <flux:heading size="xl">{{ $c->nombre }} <flux:badge size="sm">{{ config("licencias.aplicaciones.{$c->aplicacion}") }}</flux:badge></flux:heading>
                 <flux:text>Código {{ $c->codigo }} · clave {{ $c->clave_inicio }}… · versión {{ $c->version_reportada ?? '—' }} ·
                     último contacto {{ $c->ultimo_contacto_at?->diffForHumans() ?? 'nunca' }}</flux:text>
             </div>
@@ -40,6 +40,21 @@
                 <flux:button type="submit" icon="key">Generar código de activación</flux:button>
             </form>
         </flux:card>
+
+        @if ($c->aplicacion === 'panaderia')
+            <flux:card class="flex flex-col gap-3">
+                <flux:heading size="lg">Empezar de cero</flux:heading>
+                <flux:text>En el local, <strong>Ajustes → Sistema → Empezar de cero</strong> borra ventas, productos y clientes de prueba.
+                    Se puede usar una sola vez; para permitirlo de nuevo, genera un permiso aquí (el local lo recibe en ≈1 minuto).</flux:text>
+                @if ($c->reinicio_permiso)
+                    <flux:badge color="amber" class="self-start">Permiso pendiente de usar</flux:badge>
+                @endif
+                <form method="POST" action="{{ route('clientes.reinicio', $c) }}" onsubmit="return confirm('¿Permitir que el local borre todas sus ventas y productos una vez más?')">
+                    @csrf
+                    <flux:button type="submit" icon="arrow-path">Permitir empezar de cero otra vez</flux:button>
+                </form>
+            </flux:card>
+        @endif
 
         <flux:card class="flex flex-col gap-4">
             <flux:heading size="lg">Acceso</flux:heading>

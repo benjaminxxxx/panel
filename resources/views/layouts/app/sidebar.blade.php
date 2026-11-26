@@ -11,17 +11,31 @@
             </flux:sidebar.header>
 
             <flux:sidebar.nav>
-                <flux:sidebar.group heading="Restaurantes" class="grid">
-                    <flux:sidebar.item icon="building-storefront" :href="route('dashboard')" :current="request()->routeIs('dashboard', 'clientes.*')" wire:navigate>
+                <flux:sidebar.group heading="Facturación" class="grid">
+                    <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard', 'empresas.show', 'empresas.edit')" wire:navigate>
+                        Mis empresas
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="building-office-2" :href="route('empresas.create')" :current="request()->routeIs('empresas.create')" wire:navigate>
+                        Registrar empresa
+                    </flux:sidebar.item>
+                </flux:sidebar.group>
+
+                @can('proveedor')
+                <flux:sidebar.group heading="Locales (proveedor)" class="grid">
+                    <flux:sidebar.item icon="building-storefront" :href="route('clientes.index')" :current="request()->routeIs('clientes.*')" wire:navigate>
                         Clientes
                     </flux:sidebar.item>
                     <flux:sidebar.item icon="computer-desktop" :href="route('descargas')" :current="request()->routeIs('descargas*')" wire:navigate>
                         Instalar
                     </flux:sidebar.item>
+                    <flux:sidebar.item icon="qr-code" :href="route('catalogo.index')" :current="request()->routeIs('catalogo.*')" wire:navigate>
+                        Catálogo de productos
+                    </flux:sidebar.item>
                     <flux:sidebar.item icon="arrow-down-tray" :href="route('versiones.index')" :current="request()->routeIs('versiones.*')" wire:navigate>
                         Versiones
                     </flux:sidebar.item>
                 </flux:sidebar.group>
+                @endcan
             </flux:sidebar.nav>
 
             <flux:spacer />

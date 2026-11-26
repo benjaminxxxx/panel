@@ -3,17 +3,19 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Cliente;
 use App\Models\Version;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
+/** Cada local ve solo las versiones de su sistema (restaurante, panadería...). */
 class ActualizacionController extends Controller
 {
     public function ultima(Request $request): JsonResponse
     {
-        $ultima = Version::ultimaPublicada();
+        $ultima = Version::ultimaPublicada('windows', $this->cliente($request)->aplicacion);
         $actual = (string) $request->query('version', '0.0.0');
         if (! $ultima || version_compare($ultima->version, $actual, '<=')) {
             return response()->json(['disponible' => false]);
@@ -29,10 +31,16 @@ class ActualizacionController extends Controller
         ]);
     }
 
-    public function descargar(string $version): StreamedResponse
+    public function descargar(Request $request, string $version): StreamedResponse
     {
-        $v = Version::where('plataforma', 'windows')->where('version', $version)->where('publicada', true)->firstOrFail();
+        $v = Version::where('aplicacion', $this->cliente($request)->aplicacion)->where('plataforma', 'windows')
+            ->where('version', $version)->where('publicada', true)->firstOrFail();
 
-        return Storage::disk('local')->download($v->archivo, "restaurante-{$v->version}.exe");
+        return Storage::disk('local')->download($v->archivo, $v->nombreArchivo());
+    }
+
+    private function cliente(Request $request): Cliente
+    {
+        return $request->attributes->get('cliente');
     }
 }

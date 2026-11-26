@@ -8,6 +8,7 @@ use Laravel\Fortify\Features;
 use Livewire\Livewire;
 
 beforeEach(function () {
+    config(['app.locale' => 'en']); // las aserciones usan los textos originales en inglés
     $this->skipUnlessFortifyHas(Features::twoFactorAuthentication());
 
     Features::twoFactorAuthentication([
