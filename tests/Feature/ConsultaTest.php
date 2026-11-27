@@ -78,6 +78,64 @@ test('si SUNAT no responde se informa 503 para reintentar, no "no existe"', func
     $this->getJson('/api/v1/consultas/ruc/20131312955', ['Authorization' => 'Bearer clave-pan'])->assertStatus(503);
 });
 
+test('RUC por el relevo peru-consult: reintenta su 400 intermitente y adapta los datos', function () {
+    config(['consultas.ruc_url' => 'https://relevo.test/public/api/v1/ruc/{ruc}?token=abc']);
+    $intentos = 0;
+    Http::fake(function (Request $r) use (&$intentos) {
+        if (! str_starts_with($r->url(), 'https://relevo.test/public/api/v1/ruc/20131312955?token=abc')) {
+            return Http::response('no debería consultar SUNAT', 500);
+        }
+
+        return ++$intentos === 1 ? Http::response('<!-- (400 Bad Request) -->', 400) : Http::response([
+            'ruc' => '20131312955', 'razonSocial' => 'SUPERINTENDENCIA NACIONAL DE ADUANAS', 'nombreComercial' => '-',
+            'tipo' => 'INSTITUCIONES PUBLICAS', 'estado' => 'ACTIVO', 'condicion' => 'HABIDO',
+            'direccion' => 'AV. GARCILASO DE LA VEGA NRO. 1472', 'departamento' => 'LIMA', 'provincia' => 'LIMA', 'distrito' => 'LIMA',
+            'actEconomicas' => ['Principal - 8411 - ACTIVIDADES DE LA ADMINISTRACIÓN PÚBLICA'], 'cpeElectronico' => ['FACTURA (desde 01/01/2014)'],
+            'padrones' => ['Incorporado al Régimen de Agentes de Retención de IGV'],
+        ]);
+    });
+
+    $this->getJson('/api/v1/consultas/ruc/20131312955', ['Authorization' => 'Bearer clave-pan'])->assertOk()->assertJson([
+        'razon_social' => 'SUPERINTENDENCIA NACIONAL DE ADUANAS', 'nombre_comercial' => '', 'distrito' => 'LIMA',
+        'agente_retencion' => true, 'fuente' => 'relevo',
+    ]);
+    expect($intentos)->toBe(2);
+    $this->getJson('/api/v1/consultas/ruc/20131312955', ['Authorization' => 'Bearer clave-pan'])->assertOk();
+    expect($intentos)->toBe(2); // la segunda vez sale de la caché
+});
+
+test('si el relevo no da datos se sigue con SUNAT (su 400 no significa "no existe")', function () {
+    config(['consultas.ruc_url' => 'https://relevo.test/ruc/{ruc}?token=abc']);
+    $relevo = 0;
+    Http::fake(function (Request $r) use (&$relevo) {
+        if (str_contains($r->url(), 'relevo.test')) {
+            $relevo++;
+
+            return Http::response('', 400);
+        }
+
+        return Http::response('Just a moment...', 403);
+    });
+    $this->getJson('/api/v1/consultas/ruc/20131312955', ['Authorization' => 'Bearer clave-pan'])->assertStatus(503);
+    expect($relevo)->toBe(5);
+});
+
+test('token del relevo rechazado: no insiste', function () {
+    config(['consultas.ruc_url' => 'https://relevo.test/ruc/{ruc}?token=malo']);
+    $relevo = 0;
+    Http::fake(function (Request $r) use (&$relevo) {
+        if (str_contains($r->url(), 'relevo.test')) {
+            $relevo++;
+
+            return Http::response('This action needs a valid token!', 403);
+        }
+
+        return Http::response('Just a moment...', 403);
+    });
+    $this->getJson('/api/v1/consultas/ruc/20131312955', ['Authorization' => 'Bearer clave-pan'])->assertStatus(503);
+    expect($relevo)->toBe(1);
+});
+
 test('valida el número y exige una clave', function () {
     $this->getJson('/api/v1/consultas/ruc/20131312955')->assertUnauthorized();
     $this->getJson('/api/v1/consultas/ruc/20131312956', ['Authorization' => 'Bearer clave-pan'])->assertUnprocessable();

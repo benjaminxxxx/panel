@@ -57,6 +57,11 @@ class ConsultaSunat
         if ($fila = $this->padron->buscar($ruc)) {
             return $this->desdePadron($fila);
         }
+        if ($datos = $this->rucRelevo($ruc)) {
+            Cache::put($clave, $datos, now()->addHours(12));
+
+            return $datos;
+        }
         $html = $this->conReintentos(fn () => $this->paginaRuc(['accion' => 'consPorRuc', 'nroRuc' => $ruc, 'actReturn' => '1', 'modo' => '1']),
             fn (string $h) => str_contains($h, 'list-group-item-heading') || $this->sinResultados($h));
 
@@ -118,6 +123,72 @@ class ConsultaSunat
     }
 
     // ---------------------------------------------------------------- RUC
+
+    /**
+     * Relevo peru-consult-api (CONSULTA_RUC_URL). Ese servicio falla a ratos y responde 400 tanto si
+     * el RUC no existe como si SUNAT le falló: se reintenta dentro de un plazo (los locales esperan
+     * 30 s) y, si no hay datos, se sigue con la web de SUNAT (nunca se concluye "no existe" aquí).
+     *
+     * @return array<string, mixed>|null
+     */
+    private function rucRelevo(string $ruc): ?array
+    {
+        $url = (string) config('consultas.ruc_url');
+        if ($url === '') {
+            return null;
+        }
+        $limite = microtime(true) + 22;
+        for ($i = 1; $i <= 5 && microtime(true) < $limite - 1; $i++) {
+            try {
+                $r = Http::timeout(max(2, (int) ($limite - microtime(true))))->connectTimeout(5)->acceptJson()
+                    ->get(str_replace('{ruc}', $ruc, $url));
+            } catch (ConnectionException $e) {
+                Log::warning('consulta RUC: relevo sin respuesta', ['error' => $e->getMessage()]);
+
+                return null;
+            }
+            if (in_array($r->status(), [401, 403], true)) {
+                Log::error('consulta RUC: el relevo rechazó el token (revisa CONSULTA_RUC_URL)');
+
+                return null;
+            }
+            $j = $r->json();
+            if (is_array($j) && ($j['ruc'] ?? null) === $ruc && ! empty($j['razonSocial'])) {
+                return $this->desdeRelevo($j);
+            }
+            usleep(300_000);
+        }
+
+        return null;
+    }
+
+    /**
+     * @param  array<string, mixed>  $j  Company de peru-consult
+     * @return array<string, mixed>
+     */
+    private function desdeRelevo(array $j): array
+    {
+        $texto = function (string $k) use ($j): string {
+            $v = trim((string) ($j[$k] ?? ''));
+
+            return $v === '-' ? '' : $v;
+        };
+        $lista = fn (string $k): array => array_values(array_filter(array_map(fn ($v) => trim((string) $v), (array) ($j[$k] ?? [])),
+            fn (string $v) => $v !== '' && $v !== '-' && $v !== 'NINGUNO'));
+        $padrones = $lista('padrones');
+
+        return [
+            'ruc' => $j['ruc'], 'razon_social' => $texto('razonSocial'), 'nombre_comercial' => $texto('nombreComercial'),
+            'tipo' => $texto('tipo'), 'estado' => $texto('estado'), 'condicion' => $texto('condicion'),
+            'direccion' => $texto('direccion'), 'departamento' => $texto('departamento'),
+            'provincia' => $texto('provincia'), 'distrito' => $texto('distrito'),
+            'actividades' => $lista('actEconomicas'), 'comprobantes_electronicos' => $lista('cpeElectronico'),
+            'padrones' => $padrones,
+            'agente_retencion' => (bool) preg_grep('/Agentes de Retenci/i', $padrones),
+            'buen_contribuyente' => (bool) preg_grep('/Buenos Contribuyentes/i', $padrones),
+            'fuente' => 'relevo',
+        ];
+    }
 
     /**
      * Una sesión nueva: entra, pide el número aleatorio y hace la consulta con la misma cookie.
