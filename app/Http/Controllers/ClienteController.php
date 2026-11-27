@@ -6,6 +6,7 @@ use App\Licencias\EstadoCliente;
 use App\Models\Cliente;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -79,6 +80,24 @@ class ClienteController extends Controller
         $cliente->update(['estado' => 'activo', 'motivo_bloqueo' => null]);
 
         return back()->with('ok', "{$cliente->nombre} habilitado.");
+    }
+
+    /**
+     * Cierra la cuenta del cliente para siempre: se borran sus pagos y su clave deja de existir.
+     * En su próxima verificación (≈1 minuto) el local recibe 401 y queda bloqueado pidiendo un
+     * código de activación que ya nadie puede generarle.
+     */
+    public function destroy(Request $request, Cliente $cliente): RedirectResponse
+    {
+        $request->validate(['confirmar' => ['required', 'string', Rule::in([$cliente->codigo])]], [
+            'confirmar.in' => "Escribe el código {$cliente->codigo} para confirmar.",
+        ]);
+        DB::transaction(function () use ($cliente) {
+            $cliente->pagos()->delete();
+            $cliente->delete();
+        });
+
+        return to_route('clientes.index')->with('ok', "{$cliente->nombre} eliminado. Su local quedará bloqueado en su próxima verificación (≈1 minuto).");
     }
 
     public function regenerarClave(Cliente $cliente): RedirectResponse

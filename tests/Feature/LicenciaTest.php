@@ -103,7 +103,23 @@ test('panel: bloquear, habilitar y registrar un pago', function () {
     expect($c->fresh()->vence_el->toDateString())->toBe('2027-01-24');
 });
 
+test('panel: eliminar un cliente cierra su cuenta y su local deja de tener licencia', function () {
+    $admin = User::factory()->admin()->create();
+    $c = $this->cliente;
+    $this->actingAs($admin)->post(route('clientes.pagos.store', $c), ['monto' => '150', 'meses' => 1]);
+
+    $this->actingAs($admin)->delete(route('clientes.destroy', $c), ['confirmar' => 'otro'])->assertSessionHasErrors('confirmar');
+    expect(Cliente::find($c->id))->not->toBeNull();
+
+    $this->actingAs($admin)->delete(route('clientes.destroy', $c), ['confirmar' => 'demo'])->assertRedirect(route('clientes.index'));
+    expect(Cliente::find($c->id))->toBeNull()
+        ->and($c->pagos()->count())->toBe(0);
+    // El local recibe 401 y queda pidiendo un código de activación.
+    $this->getJson('/api/v1/licencia', ['Authorization' => 'Bearer '.$this->clave])->assertUnauthorized();
+});
+
 test('el panel exige iniciar sesión', function () {
     $this->get(route('dashboard'))->assertRedirect(route('login'));
     $this->post(route('clientes.bloquear', $this->cliente))->assertRedirect(route('login'));
+    $this->delete(route('clientes.destroy', $this->cliente))->assertRedirect(route('login'));
 });

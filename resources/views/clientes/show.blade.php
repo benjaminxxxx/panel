@@ -118,9 +118,24 @@
                 </div>
             </form>
             <form method="POST" action="{{ route('clientes.clave', $c) }}" class="mt-4"
-                onsubmit="return confirm('El local dejará de conectarse hasta que pongas la clave nueva en su configuración. ¿Continuar?')">
+                onsubmit="return confirm('La instalación actual del local quedará bloqueada y pedirá un código de activación nuevo. ¿Continuar?')">
                 @csrf
                 <flux:button type="submit" variant="ghost" icon="key">Generar clave nueva</flux:button>
+            </form>
+        </flux:card>
+
+        <flux:card class="flex flex-col gap-4 border-red-300 dark:border-red-900">
+            <flux:heading size="lg">Eliminar cliente</flux:heading>
+            <flux:text>Cierra la cuenta para siempre: se borran sus datos y pagos en el panel, y su local queda bloqueado
+                en ≈1 minuto (pide un código de activación que ya no se puede generar). Las ventas guardadas en el
+                local no se tocan. No se puede deshacer.</flux:text>
+            <form method="POST" action="{{ route('clientes.destroy', $c) }}" class="flex flex-wrap items-end gap-3"
+                onsubmit="return confirm('¿Eliminar {{ $c->nombre }} definitivamente?')">
+                @csrf @method('DELETE')
+                <div class="min-w-72 flex-1">
+                    <flux:input name="confirmar" label="Escribe {{ $c->codigo }} para confirmar" autocomplete="off" required />
+                </div>
+                <flux:button type="submit" variant="danger" icon="trash">Eliminar cliente</flux:button>
             </form>
         </flux:card>
     </div>

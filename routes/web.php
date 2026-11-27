@@ -49,6 +49,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('clientes', [ClienteController::class, 'store'])->name('clientes.store');
         Route::get('clientes/{cliente}', [ClienteController::class, 'show'])->name('clientes.show');
         Route::put('clientes/{cliente}', [ClienteController::class, 'update'])->name('clientes.update');
+        Route::delete('clientes/{cliente}', [ClienteController::class, 'destroy'])->name('clientes.destroy');
         Route::post('clientes/{cliente}/bloquear', [ClienteController::class, 'bloquear'])->name('clientes.bloquear');
         Route::post('clientes/{cliente}/habilitar', [ClienteController::class, 'habilitar'])->name('clientes.habilitar');
         Route::post('clientes/{cliente}/clave', [ClienteController::class, 'regenerarClave'])->name('clientes.clave');
