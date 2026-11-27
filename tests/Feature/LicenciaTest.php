@@ -89,6 +89,23 @@ test('actualización: ofrece la versión publicada más nueva, firmada, y permit
     $this->get('/api/v1/actualizacion/1.0.10/descargar')->assertUnauthorized();
 });
 
+test('versiones:refirmar firma las versiones guardadas con la llave nueva', function () {
+    Storage::fake('local');
+    $admin = User::factory()->admin()->create();
+    $this->actingAs($admin)->post(route('versiones.store'), [
+        'version' => '1.0.3', 'publicar' => '1',
+        'archivo' => UploadedFile::fake()->createWithContent('restaurante.exe', 'binario'),
+    ])->assertRedirect();
+
+    $par = sodium_crypto_sign_keypair(); // se cambia la llave del panel
+    config(['licencias.llave_privada' => base64_encode(sodium_crypto_sign_secretkey($par))]);
+    $this->artisan('versiones:refirmar')->assertSuccessful();
+
+    $r = $this->getJson('/api/v1/actualizacion?version=1.0.0', ['Authorization' => 'Bearer '.$this->clave])->assertOk();
+    $mensaje = 'restaurante|actualizacion|1.0.3|'.hash('sha256', 'binario');
+    expect(sodium_crypto_sign_verify_detached(base64_decode($r->json('firma')), $mensaje, sodium_crypto_sign_publickey($par)))->toBeTrue();
+});
+
 test('panel: bloquear, habilitar y registrar un pago', function () {
     $admin = User::factory()->admin()->create();
     $c = $this->cliente;
