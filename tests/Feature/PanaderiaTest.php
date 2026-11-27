@@ -5,6 +5,7 @@ use App\Licencias\PublicadorVersiones;
 use App\Models\CatalogoProducto;
 use App\Models\Cliente;
 use App\Models\User;
+use App\Models\Version;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
@@ -112,4 +113,17 @@ test('el proveedor permite empezar de cero una vez más y el local lo consume', 
     expect($this->panaderia->fresh()->reinicio_permiso)->toBe($permiso);
     $r = $this->getJson('/api/v1/licencia', ['Authorization' => 'Bearer clave-pan', 'X-Reinicio-Usado' => $permiso]);
     expect($datos($r)['reinicio'])->toBe('')->and($this->panaderia->fresh()->reinicio_permiso)->toBeNull();
+});
+
+test('el script de compilación publica una versión de panadería con el token', function () {
+    config(['licencias.token_publicacion' => 'token-ci']);
+    $archivo = UploadedFile::fake()->createWithContent('Panaderia-Setup-1.0.1.exe', 'instalador nuevo');
+    $this->post('/api/v1/versiones', ['aplicacion' => 'panaderia', 'version' => '1.0.1', 'notas' => 'Paleta de pan', 'publicar' => '1', 'archivo' => $archivo],
+        ['Authorization' => 'Bearer token-ci', 'Accept' => 'application/json'])
+        ->assertCreated()->assertJson(['aplicacion' => 'panaderia', 'version' => '1.0.1', 'publicada' => true]);
+    expect(Version::ultimaPublicada('windows', 'panaderia')->version)->toBe('1.0.1');
+    Storage::disk('local')->assertExists('versiones/Panaderia-Setup-1.0.1.exe');
+
+    $this->actingAs($this->admin)->get(route('versiones.index'))->assertOk()->assertSee('Publicar sin entrar aquí');
+    $this->actingAs($this->admin)->get(route('descargas'))->assertOk()->assertSee('Panaderia-Setup-1.0.1.exe');
 });

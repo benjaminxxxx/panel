@@ -15,9 +15,13 @@ class VersionController extends Controller
     public function index(): View
     {
         return view('versiones.index', [
-            'versiones' => Version::all()->sort(fn ($a, $b) => [$a->aplicacion, version_compare($b->version, $a->version)] <=> [$b->aplicacion, 0]),
+            // Por sistema y, dentro de cada uno, la versión más nueva primero (1.0.10 > 1.0.9).
+            'versiones' => Version::all()->sort(fn (Version $a, Version $b) => strcmp($a->aplicacion, $b->aplicacion)
+                ?: strcmp($a->plataforma, $b->plataforma) ?: version_compare($b->version, $a->version)),
             'ultimas' => collect(Version::aplicaciones())->mapWithKeys(fn ($n, $app) => [$app => Version::ultimaPublicada('windows', $app)]),
             'clientes' => Cliente::orderBy('aplicacion')->orderBy('nombre')->get(['aplicacion', 'nombre', 'version_reportada', 'ultimo_contacto_at']),
+            // Si el hosting no deja subir archivos grandes, el formulario falla sin explicación: se avisa antes.
+            'limiteSubida' => min($this->bytes((string) ini_get('upload_max_filesize')), $this->bytes((string) ini_get('post_max_size'))),
         ]);
     }
 
@@ -38,6 +42,23 @@ class VersionController extends Controller
         $quien = $plataforma === 'android' ? 'las tablets y celulares' : "los locales de {$sistema}";
 
         return back()->with('ok', "{$sistema} {$v->version} ({$plataforma}) subida".($v->publicada ? " y publicada: {$quien} la verán como actualización disponible." : ' (sin publicar).'));
+    }
+
+    /** "8M", "200M", "1G" → bytes (0 = sin límite). */
+    private function bytes(string $valor): int
+    {
+        $valor = trim($valor);
+        if ($valor === '' || $valor === '-1' || $valor === '0') {
+            return PHP_INT_MAX;
+        }
+        $numero = (int) $valor;
+
+        return match (strtoupper(substr($valor, -1))) {
+            'G' => $numero * 1024 ** 3,
+            'M' => $numero * 1024 ** 2,
+            'K' => $numero * 1024,
+            default => $numero,
+        };
     }
 
     public function publicar(Version $version): RedirectResponse

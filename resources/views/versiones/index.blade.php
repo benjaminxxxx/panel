@@ -17,6 +17,22 @@
             <flux:callout variant="danger" icon="x-circle" :heading="$errors->first()" />
         @endif
 
+        @if ($limiteSubida < 50 * 1024 * 1024)
+            <flux:callout variant="warning" icon="exclamation-triangle"
+                heading="Este servidor solo acepta archivos de hasta {{ number_format($limiteSubida / 1048576, 0) }} MB: un instalador (≈6–20 MB) puede no subir.">
+                <flux:callout.text>Sube <code>upload_max_filesize</code> y <code>post_max_size</code> a 200M en el PHP del hosting
+                    (el panel trae <code>public/.user.ini</code> con esos valores; algunos hostings lo cambian en cPanel → Select PHP Version → Options).</flux:callout.text>
+            </flux:callout>
+        @endif
+
+        <flux:card class="flex flex-col gap-2">
+            <flux:heading size="lg">Publicar sin entrar aquí</flux:heading>
+            <flux:text>Desde la PC donde se compila, el script arma el instalador y lo sube a este panel en un paso. Queda publicado y los locales se actualizan solos:</flux:text>
+            <pre class="overflow-x-auto rounded-lg bg-zinc-100 p-3 text-xs dark:bg-zinc-900">$env:PANEL_TOKEN = "&lt;LICENCIA_TOKEN_PUBLICACION de este panel&gt;"
+.\scripts\compilar.ps1 -Version 1.0.1 -Subir -Notas "Qué cambió"</pre>
+            <flux:text class="text-sm">Sirve para panadería y restaurante (cada uno desde su carpeta). El token solo permite subir versiones; la firma la pone el panel.</flux:text>
+        </flux:card>
+
         <flux:card>
             <form method="POST" action="{{ route('versiones.store') }}" enctype="multipart/form-data" class="flex flex-col gap-4">
                 @csrf
