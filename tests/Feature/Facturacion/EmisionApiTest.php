@@ -359,6 +359,29 @@ class EmisionApiTest extends TestCase
             ->assertJsonCount(2, 'series');
     }
 
+    public function test_el_sistema_corrige_el_ultimo_numero_de_una_serie_sin_bajar_de_lo_emitido(): void
+    {
+        [$empresa, $token] = $this->empresa();
+        $this->withToken($token)->postJson('/api/v1/comprobantes', $this->factura())->assertCreated()->assertJsonPath('correlativo', 1);
+
+        // La contadora emitió hasta la F001-34 por fuera: la siguiente de la caja es la 35.
+        $this->withToken($token)->putJson('/api/v1/series/F001', ['tipo_comprobante' => '01', 'ultimo_correlativo' => 34])
+            ->assertOk()->assertJson(['serie' => 'F001', 'ultimo_correlativo' => 34]);
+        $this->withToken($token)->postJson('/api/v1/comprobantes', $this->factura())->assertCreated()->assertJsonPath('correlativo', 35);
+
+        // Nunca por debajo de lo ya emitido desde este sistema (duplicaría la F001-35).
+        $this->withToken($token)->putJson('/api/v1/series/F001', ['tipo_comprobante' => '01', 'ultimo_correlativo' => 20])
+            ->assertUnprocessable()->assertJsonValidationErrors('ultimo_correlativo');
+        $this->withToken($token)->putJson('/api/v1/series/F001', ['tipo_comprobante' => '01', 'ultimo_correlativo' => 35])->assertOk();
+
+        // Solo sus propias series registradas.
+        $this->withToken($token)->putJson('/api/v1/series/F009', ['tipo_comprobante' => '01', 'ultimo_correlativo' => 3])->assertNotFound();
+        $this->withToken($token)->putJson('/api/v1/series/F001', ['tipo_comprobante' => '03', 'ultimo_correlativo' => 3])->assertNotFound();
+        [, $otroToken] = $this->empresa('20000000002');
+        $this->withToken($otroToken)->putJson('/api/v1/series/F001', ['tipo_comprobante' => '01', 'ultimo_correlativo' => 99])->assertOk();
+        $this->assertSame(35, Serie::where('empresa_id', $empresa->id)->where('serie', 'F001')->firstOrFail()->ultimoCorrelativo(Entorno::Beta));
+    }
+
     public function test_la_informacion_adicional_se_guarda_para_imprimirla_en_su_zona(): void
     {
         [, $token] = $this->empresa();

@@ -13,7 +13,11 @@ Accept: application/json
 
 El dueño de la empresa lo genera en el panel (**Mis empresas → su empresa → Sistemas conectados**) y solo se muestra una vez.
 Una empresa configura su certificado una sola vez y usa un token distinto en cada sistema (POS, hotel, etc.).
-`GET /api/v1/yo` sirve para verificar a qué empresa y series está vinculado el token.
+`GET /api/v1/yo` sirve para verificar a qué empresa y series está vinculado el token (con el último número usado de cada serie: el siguiente comprobante lleva ese + 1).
+
+`PUT /api/v1/series/{serie}` con `{"tipo_comprobante": "01", "ultimo_correlativo": 34}` corrige el último número usado
+cuando la empresa emitió comprobantes por fuera del sistema (el siguiente será el 35). Responde la serie actualizada;
+404 si la serie no existe o está desactivada; 422 si el número es menor que uno ya emitido desde este sistema.
 
 ## Emitir: `POST /api/v1/comprobantes`
 

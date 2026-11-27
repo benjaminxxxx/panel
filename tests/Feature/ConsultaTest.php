@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Http;
 
 beforeEach(function () {
     Cache::flush();
+    config(['consultas.ruc_url' => '']); // sin relevo salvo en sus propias pruebas (no usar el del .env)
     $this->local = new Cliente(['aplicacion' => 'panaderia', 'nombre' => 'Panadería Rosa', 'codigo' => 'panaderia-rosa']);
     $this->local->nuevaClave('clave-pan');
     $this->local->save();

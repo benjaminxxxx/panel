@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\ConsultaController;
 use App\Http\Controllers\Api\LicenciaController;
 use App\Http\Controllers\Api\PublicacionController;
 use App\Http\Controllers\Api\V1\ComprobanteController;
+use App\Http\Controllers\Api\V1\SerieController;
 use App\Http\Controllers\AppController;
 use App\Http\Middleware\AutenticarCliente;
 use App\Http\Middleware\AutenticarConsulta;
@@ -42,6 +43,7 @@ Route::prefix('v1')
     ->name('api.')
     ->group(function () {
         Route::get('yo', [ComprobanteController::class, 'yo'])->name('yo');
+        Route::put('series/{serie}', [SerieController::class, 'update'])->name('series.update');
 
         Route::post('comprobantes', [ComprobanteController::class, 'store'])->name('comprobantes.store');
         Route::get('comprobantes/{uuid}', [ComprobanteController::class, 'show'])->name('comprobantes.show');
