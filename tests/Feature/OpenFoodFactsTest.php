@@ -34,12 +34,21 @@ test('al escanear un producto de panadería que no está en el catálogo, se tra
     expect(CatalogoProducto::count())->toBe(1);
 });
 
-test('un producto que no es de panadería no entra, pero se sugiere su nombre', function () {
-    $this->getJson('/api/v1/catalogo/codigo/7750000000001')->assertNotFound()
-        ->assertJson(['error' => 'No tenemos este producto en el catálogo de panadería.', 'sugerencia' => ['nombre' => 'Detergente en polvo', 'marca' => 'Marca X']]);
-    $this->getJson('/api/v1/catalogo/codigo/7759999999999')->assertNotFound()->assertJson(['sugerencia' => null]);
+test('al escanear, también entra lo que no es de panadería (si lo escanean es porque lo venden), en "Otros"', function () {
+    $this->getJson('/api/v1/catalogo/codigo/7750000000001')->assertOk()
+        ->assertJson(['producto' => ['nombre' => 'Detergente en polvo', 'marca' => 'Marca X', 'categoria' => 'Otros', 'fuente' => 'openfoodfacts']]);
+    expect(CatalogoProducto::where('codigo_barras', '7750000000001')->exists())->toBeTrue();
+});
+
+test('código que nadie tiene: 404 sin sugerencia; producto desactivado por el proveedor: solo su nombre', function () {
+    $this->getJson('/api/v1/catalogo/codigo/7759999999999')->assertNotFound()
+        ->assertJson(['error' => 'Este código no está registrado en ningún catálogo.', 'sugerencia' => null]);
     $this->getJson('/api/v1/catalogo/codigo/abc')->assertUnprocessable();
-    expect(CatalogoProducto::count())->toBe(0);
+
+    CatalogoProducto::create(['codigo_barras' => '7750000000001', 'nombre' => 'Detergente', 'unidad' => 'NIU', 'activo' => false]);
+    $this->getJson('/api/v1/catalogo/codigo/7750000000001')->assertNotFound()
+        ->assertJson(['error' => 'Este producto no está disponible en el catálogo.', 'sugerencia' => ['nombre' => 'Detergente en polvo']]);
+    expect(CatalogoProducto::count())->toBe(1);
 });
 
 test('la importación masiva solo trae productos de panadería', function () {

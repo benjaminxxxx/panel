@@ -18,6 +18,9 @@ use Illuminate\Support\Facades\Storage;
  */
 class OpenFoodFacts
 {
+    /** Categoría de lo escaneado que no encaja en las de panadería. */
+    public const OTROS = 'Otros';
+
     /**
      * Ficha de un producto por su código de barras. null = Open Food Facts no lo tiene.
      *
@@ -124,9 +127,10 @@ class OpenFoodFacts
     }
 
     /**
-     * Para el escaneo desde una panadería: el producto del catálogo, o lo trae de Open Food Facts si
-     * es de panadería. Si Open Food Facts lo conoce pero no es de panadería, devuelve su nombre como
-     * sugerencia (para registrarlo a mano) sin agregarlo al catálogo.
+     * Para el escaneo desde un local: el producto del catálogo, o lo trae de Open Food Facts y lo
+     * agrega al catálogo. Aquí no se filtra por categoría: si lo escanean es porque lo venden (lo que
+     * no encaja en las de panadería queda en "Otros"). El filtro es solo para la importación masiva.
+     * Si el producto existe pero el proveedor lo desactivó, solo se sugiere su nombre.
      *
      * @return array{producto: ?CatalogoProducto, sugerencia: ?array{nombre: string, marca: string, presentacion: string}}
      */
@@ -137,8 +141,8 @@ class OpenFoodFacts
             return ['producto' => $producto, 'sugerencia' => null];
         }
         $datos = $this->producto($codigo);
-        if ($datos && $datos['categoria'] !== null && ! CatalogoProducto::where('codigo_barras', $codigo)->exists()) {
-            return ['producto' => $this->guardar($datos), 'sugerencia' => null];
+        if ($datos && ! CatalogoProducto::where('codigo_barras', $codigo)->exists()) {
+            return ['producto' => $this->guardar(['categoria' => $datos['categoria'] ?? self::OTROS] + $datos), 'sugerencia' => null];
         }
 
         return ['producto' => null, 'sugerencia' => $datos ? ['nombre' => $datos['nombre'], 'marca' => $datos['marca'], 'presentacion' => $datos['presentacion']] : null];

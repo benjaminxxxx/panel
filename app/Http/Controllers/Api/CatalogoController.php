@@ -36,9 +36,9 @@ class CatalogoController extends Controller
 
     /**
      * Un producto por código de barras (escaneo desde la panadería). Si no está en el catálogo
-     * pero Open Food Facts lo tiene y es de panadería, se agrega al momento.
+     * pero Open Food Facts lo tiene, se agrega al momento (sea o no de panadería).
      *   200 {producto}          → existe (o se acaba de traer)
-     *   404 {error, sugerencia} → no tenemos ese suministro; sugerencia = nombre conocido (o null)
+     *   404 {error, sugerencia} → nadie lo tiene, o el proveedor lo desactivó (sugerencia = su nombre)
      */
     public function porCodigo(string $codigo, OpenFoodFacts $off): JsonResponse
     {
@@ -52,7 +52,7 @@ class CatalogoController extends Controller
 
         return response()->json([
             'error' => $r['sugerencia']
-                ? 'No tenemos este producto en el catálogo de panadería.'
+                ? 'Este producto no está disponible en el catálogo.'
                 : 'Este código no está registrado en ningún catálogo.',
             'sugerencia' => $r['sugerencia'],
         ], 404);
